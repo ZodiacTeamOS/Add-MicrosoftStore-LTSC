@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 # ===============================
-# Check Administrator
+# Auto Elevate
 # ===============================
 if (-not ([Security.Principal.WindowsPrincipal] `
     [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -14,57 +14,87 @@ if (-not ([Security.Principal.WindowsPrincipal] `
 }
 
 # ===============================
+# Windows version check (21H2+)
+# ===============================
+$build = [int](Get-ComputerInfo).OsBuildNumber
+if ($build -lt 19044) {
+    Write-Error "This pack is for Windows 10 21H2 (19044) and later"
+    exit 1
+}
+
+# ===============================
+# Arch detect
+# ===============================
+$arch = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
+
+# ===============================
 # Temp directory
 # ===============================
 $temp = "$env:TEMP\msstore"
 New-Item $temp -ItemType Directory -Force | Out-Null
 
 # ===============================
-# Dependencies (skip if installed)
+# Helper: Install package if not installed
 # ===============================
-Write-Host "Installing dependencies..."
+function Install-AppxIfMissing {
+    param (
+        [string]$Name,
+        [string]$Url
+    )
 
-$dependencies = @(
-    @{
-        Name = "Microsoft.VCLibs.140.00.UWPDesktop"
-        Url  = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-    },
-    @{
-        Name = "Microsoft.UI.Xaml.2.8"
-        Url  = "https://aka.ms/Microsoft.UI.Xaml.2.8.x64.appx"
-    },
-    @{
-        Name = "Microsoft.NET.Native.Framework.2.2"
-        Url  = "https://aka.ms/Microsoft.NET.Native.Framework.2.2.appx"
-    },
-    @{
-        Name = "Microsoft.NET.Native.Runtime.2.2"
-        Url  = "https://aka.ms/Microsoft.NET.Native.Runtime.2.2.appx"
-    }
-)
-
-foreach ($dep in $dependencies) {
-
-    if (Get-AppxPackage -Name $dep.Name -ErrorAction SilentlyContinue) {
-        Write-Host "$($dep.Name) already installed, skipping"
-        continue
+    if (Get-AppxPackage -Name $Name -ErrorAction SilentlyContinue) {
+        Write-Host "$Name already installed, skipping"
+        return
     }
 
-    $file = "$temp\$(Split-Path $dep.Url -Leaf)"
-    Invoke-WebRequest $dep.Url -OutFile $file
+    $file = "$temp\$(Split-Path $Url -Leaf)"
+    Invoke-WebRequest $Url -OutFile $file
     Add-AppxPackage -Path $file
 }
 
 # ===============================
-# Microsoft Store components
+# Dependencies
+# ===============================
+Write-Host "Installing dependencies..."
+
+Install-AppxIfMissing `
+    "Microsoft.NET.Native.Framework.2.2" `
+    "https://aka.ms/Microsoft.NET.Native.Framework.2.2.appx"
+
+Install-AppxIfMissing `
+    "Microsoft.NET.Native.Runtime.2.2" `
+    "https://aka.ms/Microsoft.NET.Native.Runtime.2.2.appx"
+
+Install-AppxIfMissing `
+    "Microsoft.UI.Xaml.2.8" `
+    "https://aka.ms/Microsoft.UI.Xaml.2.8.$arch.appx"
+
+Install-AppxIfMissing `
+    "Microsoft.VCLibs.140.00.UWPDesktop" `
+    "https://aka.ms/Microsoft.VCLibs.$arch.14.00.Desktop.appx"
+
+# ===============================
+# Ask for DesktopAppInstaller + winget
+# ===============================
+$installWinget = Read-Host "Install latest DesktopAppInstaller with winget? (Y/N)"
+$installWinget = $installWinget.Substring(0,1).ToUpper()
+
+if ($installWinget -eq "Y") {
+    $wingetUrl = "https://aka.ms/getwinget"
+    $wingetFile = "$temp\Microsoft.DesktopAppInstaller.msixbundle"
+    Invoke-WebRequest $wingetUrl -OutFile $wingetFile
+    Add-AppxPackage -Path $wingetFile -ForceApplicationShutdown
+}
+
+# ===============================
+# Microsoft Store packages
 # ===============================
 Write-Host "Installing Microsoft Store components..."
 
 $storePackages = @(
-    "Microsoft.XboxIdentityProvider",
+    "Microsoft.WindowsStore",
     "Microsoft.StorePurchaseApp",
-    "Microsoft.DesktopAppInstaller",
-    "Microsoft.WindowsStore"
+    "Microsoft.XboxIdentityProvider"
 )
 
 $api = "https://store.rg-adguard.net/api/GetFiles"
@@ -76,19 +106,19 @@ foreach ($pkg in $storePackages) {
         continue
     }
 
-    $response = Invoke-WebRequest `
+    $resp = Invoke-WebRequest `
         -Uri $api `
         -Method POST `
         -Body "type=PackageFamilyName&url=$pkg&ring=Retail&lang=en-US" `
         -UseBasicParsing
 
-    $link = ($response.Links |
-        Where-Object href -Match "msixbundle|appxbundle" |
-        Where-Object href -Match "x64|neutral" |
+    $link = ($resp.Links |
+        Where-Object href -Match "appxbundle|msixbundle" |
+        Where-Object href -Match $arch |
         Select-Object -First 1).href
 
     if (-not $link) {
-        Write-Error "Failed to download $pkg"
+        Write-Error "Failed to fetch $pkg"
         exit 1
     }
 
@@ -99,5 +129,7 @@ foreach ($pkg in $storePackages) {
 
 Write-Host ""
 Write-Host "========================================"
-Write-Host " Microsoft Store installed successfully "
+Write-Host " Microsoft Store installation completed "
 Write-Host "========================================"
+Write-Host ""
+Read-Host "Press Enter to exit"
