@@ -13,15 +13,20 @@ if (-not ([Security.Principal.WindowsPrincipal] `
     exit
 }
 
+# ===============================
+# Ask Reinstall
+# ===============================
+$reinstall = Read-Host "Reinstall Microsoft Store even if installed? (Y/N)"
+$reinstall = $reinstall.Substring(0,1).ToUpper()
+$force = ($reinstall -eq "Y")
+
 try {
 
     # ===============================
     # Windows version check
     # ===============================
     $build = [int](Get-ComputerInfo).OsBuildNumber
-    if ($build -lt 19044) {
-        throw "This pack is for Windows 10 21H2 (19044) and later"
-    }
+    if ($build -lt 19044) { throw "Windows 10 21H2+ required" }
 
     # ===============================
     # Arch detect
@@ -29,59 +34,56 @@ try {
     $arch = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
 
     # ===============================
-    # Temp directory
+    # Temp + Log
     # ===============================
     $temp = "$env:TEMP\msstore"
+    $log  = "$temp\install.log"
     New-Item $temp -ItemType Directory -Force | Out-Null
+    Start-Transcript -Path $log | Out-Null
 
     # ===============================
     # Helper
     # ===============================
-    function Install-AppxIfMissing {
+    function Install-Appx {
         param ($Name, $Url)
 
-        if (Get-AppxPackage -Name $Name -ErrorAction SilentlyContinue) {
+        if (-not $force -and (Get-AppxPackage -Name $Name -ErrorAction SilentlyContinue)) {
             Write-Host "$Name already installed, skipping"
             return
         }
 
         $file = "$temp\$(Split-Path $Url -Leaf)"
         Invoke-WebRequest $Url -OutFile $file
-        Add-AppxPackage -Path $file
+        Add-AppxPackage -Path $file -ForceApplicationShutdown
     }
 
     # ===============================
     # Dependencies
     # ===============================
-    Write-Host "Installing dependencies..."
-
-    Install-AppxIfMissing "Microsoft.NET.Native.Framework.2.2" `
+    Install-Appx "Microsoft.NET.Native.Framework.2.2" `
         "https://aka.ms/Microsoft.NET.Native.Framework.2.2.appx"
 
-    Install-AppxIfMissing "Microsoft.NET.Native.Runtime.2.2" `
+    Install-Appx "Microsoft.NET.Native.Runtime.2.2" `
         "https://aka.ms/Microsoft.NET.Native.Runtime.2.2.appx"
 
-    Install-AppxIfMissing "Microsoft.UI.Xaml.2.8" `
+    Install-Appx "Microsoft.UI.Xaml.2.8" `
         "https://aka.ms/Microsoft.UI.Xaml.2.8.$arch.appx"
 
-    Install-AppxIfMissing "Microsoft.VCLibs.140.00.UWPDesktop" `
+    Install-Appx "Microsoft.VCLibs.140.00.UWPDesktop" `
         "https://aka.ms/Microsoft.VCLibs.$arch.14.00.Desktop.appx"
 
     # ===============================
-    # Winget option
+    # DesktopAppInstaller + winget
     # ===============================
-    $installWinget = Read-Host "Install latest DesktopAppInstaller with winget? (Y/N)"
-    if ($installWinget.Substring(0,1).ToUpper() -eq "Y") {
+    if ($force -or -not (Get-AppxPackage -Name Microsoft.DesktopAppInstaller -ErrorAction SilentlyContinue)) {
         $wingetFile = "$temp\DesktopAppInstaller.msixbundle"
         Invoke-WebRequest "https://aka.ms/getwinget" -OutFile $wingetFile
         Add-AppxPackage -Path $wingetFile -ForceApplicationShutdown
     }
 
     # ===============================
-    # Store components
+    # Store packages
     # ===============================
-    Write-Host "Installing Microsoft Store components..."
-
     $api = "https://store.rg-adguard.net/api/GetFiles"
     $storePackages = @(
         "Microsoft.WindowsStore",
@@ -91,7 +93,7 @@ try {
 
     foreach ($pkg in $storePackages) {
 
-        if (Get-AppxPackage -Name $pkg -ErrorAction SilentlyContinue) {
+        if (-not $force -and (Get-AppxPackage -Name $pkg -ErrorAction SilentlyContinue)) {
             Write-Host "$pkg already installed, skipping"
             continue
         }
@@ -107,29 +109,28 @@ try {
             Where-Object href -Match $arch |
             Select-Object -First 1).href
 
-        if (-not $link) {
-            throw "Failed to download $pkg"
-        }
+        if (-not $link) { throw "Failed to fetch $pkg" }
 
         $file = "$temp\$(Split-Path $link -Leaf)"
         Invoke-WebRequest $link -OutFile $file
         Add-AppxPackage -Path $file -ForceApplicationShutdown
     }
 
-    Write-Host ""
-    Write-Host "========================================"
-    Write-Host " Microsoft Store installation completed "
-    Write-Host "========================================"
+    Write-Host "Microsoft Store installation completed."
 
 }
 finally {
+    Stop-Transcript | Out-Null
+
     # ===============================
     # Cleanup
     # ===============================
     if (Test-Path $temp) {
         Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "Temporary files cleaned."
     }
-}
 
-Read-Host "Press Enter to exit"
+    # ===============================
+    # Self-delete session
+    # ===============================
+    exit
+}
