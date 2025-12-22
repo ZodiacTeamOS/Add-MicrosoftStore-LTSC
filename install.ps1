@@ -1,13 +1,17 @@
 $ErrorActionPreference = "Stop"
 
+
 # ===============================
 # Check Administrator
 # ===============================
 if (-not ([Security.Principal.WindowsPrincipal] `
     [Security.Principal.WindowsIdentity]::GetCurrent()
 ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Error "Run PowerShell as Administrator"
-    exit 1
+
+    Start-Process powershell `
+        -Verb RunAs `
+        -ArgumentList "irm https://raw.githubusercontent.com/ZodiacTeamOS/Add-MicrosoftStore-LTSC/main/install.ps1 | iex"
+    exit
 }
 
 # ===============================
