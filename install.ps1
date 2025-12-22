@@ -1,6 +1,5 @@
 $ErrorActionPreference = "Stop"
 
-
 # ===============================
 # Check Administrator
 # ===============================
@@ -21,26 +20,46 @@ $temp = "$env:TEMP\msstore"
 New-Item $temp -ItemType Directory -Force | Out-Null
 
 # ===============================
-# Dependencies (Microsoft official links)
+# Dependencies (skip if installed)
 # ===============================
-$dependencies = @(
-    "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx",
-    "https://aka.ms/Microsoft.UI.Xaml.2.8.x64.appx",
-    "https://aka.ms/Microsoft.NET.Native.Framework.2.2.appx",
-    "https://aka.ms/Microsoft.NET.Native.Runtime.2.2.appx"
-)
-
 Write-Host "Installing dependencies..."
 
-foreach ($url in $dependencies) {
-    $file = "$temp\$(Split-Path $url -Leaf)"
-    Invoke-WebRequest $url -OutFile $file
+$dependencies = @(
+    @{
+        Name = "Microsoft.VCLibs.140.00.UWPDesktop"
+        Url  = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
+    },
+    @{
+        Name = "Microsoft.UI.Xaml.2.8"
+        Url  = "https://aka.ms/Microsoft.UI.Xaml.2.8.x64.appx"
+    },
+    @{
+        Name = "Microsoft.NET.Native.Framework.2.2"
+        Url  = "https://aka.ms/Microsoft.NET.Native.Framework.2.2.appx"
+    },
+    @{
+        Name = "Microsoft.NET.Native.Runtime.2.2"
+        Url  = "https://aka.ms/Microsoft.NET.Native.Runtime.2.2.appx"
+    }
+)
+
+foreach ($dep in $dependencies) {
+
+    if (Get-AppxPackage -Name $dep.Name -ErrorAction SilentlyContinue) {
+        Write-Host "$($dep.Name) already installed, skipping"
+        continue
+    }
+
+    $file = "$temp\$(Split-Path $dep.Url -Leaf)"
+    Invoke-WebRequest $dep.Url -OutFile $file
     Add-AppxPackage -Path $file
 }
 
 # ===============================
-# Microsoft Store packages
+# Microsoft Store components
 # ===============================
+Write-Host "Installing Microsoft Store components..."
+
 $storePackages = @(
     "Microsoft.XboxIdentityProvider",
     "Microsoft.StorePurchaseApp",
@@ -50,9 +69,12 @@ $storePackages = @(
 
 $api = "https://store.rg-adguard.net/api/GetFiles"
 
-Write-Host "Installing Microsoft Store components..."
-
 foreach ($pkg in $storePackages) {
+
+    if (Get-AppxPackage -Name $pkg -ErrorAction SilentlyContinue) {
+        Write-Host "$pkg already installed, skipping"
+        continue
+    }
 
     $response = Invoke-WebRequest `
         -Uri $api `
@@ -75,4 +97,7 @@ foreach ($pkg in $storePackages) {
     Add-AppxPackage -Path $file -ForceApplicationShutdown
 }
 
-Write-Host "Microsoft Store installed successfully."
+Write-Host ""
+Write-Host "========================================"
+Write-Host " Microsoft Store installed successfully "
+Write-Host "========================================"
