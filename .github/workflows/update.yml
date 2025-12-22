@@ -1,1 +1,24 @@
-s
+name: Auto Update Store
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update packages
+        shell: pwsh
+        run: ./update.ps1
+
+      - name: Commit
+        run: |
+          git config user.name "store-bot"
+          git config user.email "bot@github"
+          git add packages
+          git commit -m "auto update store packages" || exit 0
+          git push
