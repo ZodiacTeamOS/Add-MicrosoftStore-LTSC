@@ -1,5 +1,6 @@
 export async function handler(event) {
-  const filename = event.path.split("/").pop();
+  const filename = event.path.replace("/download/", "");
+
 
   if (!filename) {
     return { statusCode: 400, body: "Missing filename" };
