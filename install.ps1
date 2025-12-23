@@ -1,5 +1,14 @@
 $ErrorActionPreference = "Stop"
 
+# ===== Admin check (iex-safe) =====
+if (-not ([bool](
+    [Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544'
+))) {
+    Write-Error "Run PowerShell as Administrator"
+    exit 1
+}
+
+# ===== Repo config =====
 $Repo = "ZodiacTeamOS/Add-MicrosoftStore-LTSC"
 $Tag  = "the_bun"
 $Base = "https://github.com/$Repo/releases/download/$Tag"
@@ -8,14 +17,16 @@ $Temp = "$env:TEMP\MSStoreLTSC"
 New-Item -ItemType Directory -Force -Path $Temp | Out-Null
 Set-Location $Temp
 
+# ===== Download helper =====
 function Get-File {
     param($Name)
     if (!(Test-Path $Name)) {
         Write-Host "Downloading $Name"
-        irm "$Base/$Name" -OutFile $Name
+        Invoke-RestMethod "$Base/$Name" -OutFile $Name
     }
 }
 
+# ===== Install helper =====
 function Install {
     param($Path)
     Write-Host "Installing $Path"
@@ -29,14 +40,12 @@ Install  "Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_x64__8wekyb3d8bbwe.App
 # ================= .NET Native =================
 Get-File "Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x64__8wekyb3d8bbwe.Appx"
 Get-File "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.Appx"
-
 Install "Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x64__8wekyb3d8bbwe.Appx"
 Install "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.Appx"
 
 # ================= UI.Xaml =================
 Get-File "Microsoft.UI.Xaml.2.7_7.2409.9001.0_x64__8wekyb3d8bbwe.Appx"
 Get-File "Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64__8wekyb3d8bbwe.Appx"
-
 Install "Microsoft.UI.Xaml.2.7_7.2409.9001.0_x64__8wekyb3d8bbwe.Appx"
 Install "Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64__8wekyb3d8bbwe.Appx"
 
@@ -70,4 +79,4 @@ Add-AppxPackage `
  -DisableDevelopmentMode `
  -ForceApplicationShutdown
 
-Write-Host "Microsoft Store Installed Successfully"
+Write-Host "✔ Microsoft Store Installed Successfully"
