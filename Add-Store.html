@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add-Store.ps1 (RAW)</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: Consolas, monospace;
+    }
+    pre {
+      padding: 20px;
+      white-space: pre;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+<pre id="code">Loading...</pre>
+
+<script>
+fetch('Add-Store.ps1')
+  .then(r => r.text())
+  .then(t => document.getElementById('code').textContent = t)
+  .catch(e => document.getElementById('code').textContent = e);
+</script>
+
+</body>
+</html>
