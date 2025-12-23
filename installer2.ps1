@@ -1,4 +1,5 @@
 #Requires -RunAsAdministrator
+
 # Check Windows version
 $version = [System.Environment]::OSVersion.Version
 if ($version.Build -lt 19044) {
@@ -40,7 +41,9 @@ $allPackages = @(
     "Microsoft.WindowsStore_22409.1401.5.0_neutral___8wekyb3d8bbwe.Msixbundle",
     "Microsoft.DesktopAppInstaller_2023.808.2243.0_neutral___8wekyb3d8bbwe.Msixbundle",
     "Microsoft.StorePurchaseApp_22408.1401.0.0_neutral___8wekyb3d8bbwe.AppxBundle",
-    "Microsoft.XboxIdentityProvider_12.115.1001.0_neutral___8wekyb3d8bbwe.AppxBundle"
+    "Microsoft.XboxIdentityProvider_12.115.1001.0_neutral___8wekyb3d8bbwe.AppxBundle",
+    "Microsoft.GamingServices_33.108.12001.0_neutral_~_8wekyb3d8bbwe.AppxBundle",
+    "Microsoft.Xbox.TCUI_1.24.10001.0_neutral_~_8wekyb3d8bbwe.AppxBundle"
 )
 
 # Function to show progress bar
@@ -134,6 +137,8 @@ $installOrder += Get-ChildItem -Path $scriptPath -Filter "*WindowsStore*"
 $installOrder += Get-ChildItem -Path $scriptPath -Filter "*DesktopAppInstaller*"
 $installOrder += Get-ChildItem -Path $scriptPath -Filter "*StorePurchaseApp*" -ErrorAction SilentlyContinue
 $installOrder += Get-ChildItem -Path $scriptPath -Filter "*XboxIdentityProvider*" -ErrorAction SilentlyContinue
+$installOrder += Get-ChildItem -Path $scriptPath -Filter "*GamingServices*" -ErrorAction SilentlyContinue
+$installOrder += Get-ChildItem -Path $scriptPath -Filter "*Xbox.TCUI*" -ErrorAction SilentlyContinue
 
 $totalInstalls = $installOrder.Count
 $currentInstall = 0
@@ -171,6 +176,8 @@ if ($choice -eq "Y") {
             "Microsoft.WindowsStore",
             "Microsoft.StorePurchaseApp",
             "Microsoft.XboxIdentityProvider",
+            "Microsoft.GamingServices",
+            "Microsoft.Xbox.TCUI",
             "Microsoft.NET.Native.Framework.2.2",
             "Microsoft.NET.Native.Runtime.2.2",
             "Microsoft.UI.Xaml.2.7",
@@ -189,6 +196,20 @@ if ($choice -eq "Y") {
         
         Write-Host "`n" # New line after progress bar
         Write-Host "✓ Updates completed!`n" -ForegroundColor Green
+        
+        # Install Feedback Hub from Microsoft Store
+        Write-Host "Installing Feedback Hub from Microsoft Store..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 2
+        
+        try {
+            # Using winget to install from Microsoft Store
+            winget install "Feedback Hub" --source msstore --accept-source-agreements --accept-package-agreements --silent 2>&1 | Out-Null
+            Write-Host "✓ Feedback Hub installed successfully!`n" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "✗ Could not install Feedback Hub automatically.`n" -ForegroundColor Red
+            Write-Host "You can install it manually from Microsoft Store.`n" -ForegroundColor Yellow
+        }
     }
     else {
         Write-Host "✗ winget not found. Please restart your terminal.`n" -ForegroundColor Red
@@ -196,6 +217,25 @@ if ($choice -eq "Y") {
 }
 else {
     Write-Host "Skipping updates.`n" -ForegroundColor Yellow
+    
+    # Still try to install Feedback Hub even if updates are skipped
+    Write-Host "Installing Feedback Hub from Microsoft Store..." -ForegroundColor Yellow
+    Start-Sleep -Seconds 2
+    
+    # Refresh PATH
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    
+    $wingetCmd = Get-Command winget -ErrorAction SilentlyContinue
+    if ($wingetCmd) {
+        try {
+            winget install "Feedback Hub" --source msstore --accept-source-agreements --accept-package-agreements --silent 2>&1 | Out-Null
+            Write-Host "✓ Feedback Hub installed successfully!`n" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "✗ Could not install Feedback Hub automatically.`n" -ForegroundColor Red
+            Write-Host "You can install it manually from Microsoft Store.`n" -ForegroundColor Yellow
+        }
+    }
 }
 
 Write-Host "============================================" -ForegroundColor Gray
