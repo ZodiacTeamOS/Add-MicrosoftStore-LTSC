@@ -1,9 +1,10 @@
 $ErrorActionPreference = "Stop"
 
 # ===== Admin check (iex-safe) =====
-if (-not ([bool](
-    [Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544'
-))) {
+$ErrorActionPreference = "Stop"
+
+net session >$null 2>&1
+if ($LASTEXITCODE -ne 0) {
     Write-Error "Run PowerShell as Administrator"
     exit 1
 }
