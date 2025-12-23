@@ -1,5 +1,3 @@
-$ErrorActionPreference = "Stop"
-
 # ===== Admin check (iex-safe) =====
 $ErrorActionPreference = "Stop"
 
