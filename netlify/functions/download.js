@@ -5,7 +5,7 @@ export async function handler(event) {
     return { statusCode: 400, body: "Missing filename" };
   }
 
-  const releaseTag = "the_bun"; // غيره لو حبيت
+  const releaseTag = "the_bun";
   const url = `https://github.com/ZodiacTeamOS/Add-MicrosoftStore-LTSC/releases/download/${releaseTag}/${filename}`;
 
   const res = await fetch(url, {
