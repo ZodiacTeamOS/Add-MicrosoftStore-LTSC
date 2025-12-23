@@ -96,7 +96,8 @@ function Install-AppxSilent {
     }
     
     try {
-        Add-AppxPackage -Path $Path -ErrorAction Stop | Out-Null
+        # Suppress all output including deployment progress
+        Add-AppxPackage -Path $Path -ErrorAction Stop *>&1 | Out-Null
         return $true
     }
     catch {
