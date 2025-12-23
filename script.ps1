@@ -1,3 +1,10 @@
+$ErrorActionPreference = "Stop"
+
+net session >$null 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Run PowerShell as Administrator"
+    exit 1
+}
 # ===== Admin check (iex-safe) =====
 $ErrorActionPreference = "Stop"
 
