@@ -1,4 +1,3 @@
-irm  | iex
 # Add-MicrosoftStore-LTSC
 instll MicrosoftStore and some needly apps to win 11 ltsc enterprise 2025
 
