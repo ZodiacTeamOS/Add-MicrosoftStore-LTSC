@@ -1,5 +1,5 @@
 # Add-MicrosoftStore-LTSC
-instll MicrosoftStore and some needly apps to win 11 ltsc enterprise 2025
+install MicrosoftStore and some needly apps to win 11 ltsc enterprise 2025
 
 ### Launch Command
 #### Stable Branch
