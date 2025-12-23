@@ -59,7 +59,8 @@ function Show-Progress {
     $completed = [math]::Floor(($percent / 100) * $barLength)
     $remaining = $barLength - $completed
     
-    $bar = "[" + ("█" * $completed) + ("░" * $remaining) + "]"
+    # Use simple characters for better compatibility
+    $bar = "[" + ("#" * $completed) + ("-" * $remaining) + "]"
     
     Write-Host "`r$Activity $bar $percent%" -NoNewline -ForegroundColor Cyan
 }
@@ -160,9 +161,19 @@ Remove-Item -Path $scriptPath -Recurse -Force -ErrorAction SilentlyContinue
 Write-Host "✓ Installation completed!`n" -ForegroundColor Green
 
 # Phase 3: Update
-Write-Host "Do you want to update the installed packages? (Y/N): " -NoNewline -ForegroundColor Cyan
-$choice = [Console]::ReadKey($true).KeyChar.ToString().ToUpper()
-Write-Host "$choice`n"
+Write-Host "`nDo you want to update the installed packages? (Y/N): " -NoNewline -ForegroundColor Cyan
+$choice = $null
+while ($null -eq $choice -or ($choice -ne "Y" -and $choice -ne "N")) {
+    if ($Host.UI.RawUI.KeyAvailable) {
+        $key = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        $choice = $key.Character.ToString().ToUpper()
+        if ($choice -eq "Y" -or $choice -eq "N") {
+            Write-Host $choice
+            break
+        }
+    }
+    Start-Sleep -Milliseconds 100
+}
 
 if ($choice -eq "Y") {
     Write-Host "Preparing to update packages...`n" -ForegroundColor Yellow
@@ -242,9 +253,19 @@ Write-Host "`n"
 Write-Host "✓ Updates completed!`n" -ForegroundColor Green
 
 # Ask about Feedback Hub
-Write-Host "Do you want to install Feedback Hub from Microsoft Store? (Y/N): " -NoNewline -ForegroundColor Cyan
-`$feedbackChoice = [Console]::ReadKey(`$true).KeyChar.ToString().ToUpper()
-Write-Host "`$feedbackChoice`n"
+Write-Host "`nDo you want to install Feedback Hub from Microsoft Store? (Y/N): " -NoNewline -ForegroundColor Cyan
+`$feedbackChoice = `$null
+while (`$null -eq `$feedbackChoice -or (`$feedbackChoice -ne "Y" -and `$feedbackChoice -ne "N")) {
+    if (`$Host.UI.RawUI.KeyAvailable) {
+        `$key = `$Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        `$feedbackChoice = `$key.Character.ToString().ToUpper()
+        if (`$feedbackChoice -eq "Y" -or `$feedbackChoice -eq "N") {
+            Write-Host `$feedbackChoice
+            break
+        }
+    }
+    Start-Sleep -Milliseconds 100
+}
 
 if (`$feedbackChoice -eq "Y") {
     Write-Host "Installing Feedback Hub..." -ForegroundColor Yellow
@@ -281,11 +302,21 @@ else {
     
     # Ask about Feedback Hub
     Write-Host "Do you want to install Feedback Hub from Microsoft Store? (Y/N): " -NoNewline -ForegroundColor Cyan
-    $feedbackChoice = [Console]::ReadKey($true).KeyChar.ToString().ToUpper()
-    Write-Host "$feedbackChoice`n"
+    $feedbackChoice = $null
+    while ($null -eq $feedbackChoice -or ($feedbackChoice -ne "Y" -and $feedbackChoice -ne "N")) {
+        if ($Host.UI.RawUI.KeyAvailable) {
+            $key = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            $feedbackChoice = $key.Character.ToString().ToUpper()
+            if ($feedbackChoice -eq "Y" -or $feedbackChoice -eq "N") {
+                Write-Host $feedbackChoice
+                break
+            }
+        }
+        Start-Sleep -Milliseconds 100
+    }
     
     if ($feedbackChoice -eq "Y") {
-        Write-Host "Installing Feedback Hub..." -ForegroundColor Yellow
+        Write-Host "`nInstalling Feedback Hub..." -ForegroundColor Yellow
         
         # Refresh PATH
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
@@ -309,12 +340,15 @@ else {
         }
     }
     else {
-        Write-Host "Skipping Feedback Hub installation.`n" -ForegroundColor Yellow
+        Write-Host "`nSkipping Feedback Hub installation.`n" -ForegroundColor Yellow
     }
 }
 
-Write-Host "============================================" -ForegroundColor Gray
+Write-Host "`n============================================" -ForegroundColor Gray
 Write-Host "All done! You may need to restart your PC." -ForegroundColor Green
 Write-Host "============================================`n" -ForegroundColor Gray
 Write-Host "Press any key to exit..." -ForegroundColor Gray
-$null = [Console]::ReadKey($true)
+while (-not $Host.UI.RawUI.KeyAvailable) {
+    Start-Sleep -Milliseconds 100
+}
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
