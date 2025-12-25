@@ -26,24 +26,24 @@ $baseUrl = "https://github.com/$githubRepo/releases/download/$releaseTag"
 
 # All packages to download
 $allPackages = @(
-    "Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x64__8wekyb3d8bbwe.Appx",
-    "Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x86__8wekyb3d8bbwe.Appx",
-    "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.Appx",
-    "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86__8wekyb3d8bbwe.Appx",
-    "Microsoft.UI.Xaml.2.7_7.2409.9001.0_x64__8wekyb3d8bbwe.Appx",
-    "Microsoft.UI.Xaml.2.7_7.2409.9001.0_x86__8wekyb3d8bbwe.Appx",
-    "Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64__8wekyb3d8bbwe.Appx",
-    "Microsoft.UI.Xaml.2.8_8.2310.30001.0_x86__8wekyb3d8bbwe.Appx",
-    "Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_x64__8wekyb3d8bbwe.Appx",
-    "Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_x86__8wekyb3d8bbwe.Appx",
-    "Microsoft.VCLibs.140.00_14.0.33519.0_x64__8wekyb3d8bbwe.Appx",
-    "Microsoft.VCLibs.140.00_14.0.33519.0_x86__8wekyb3d8bbwe.Appx",
-    "Microsoft.WindowsStore_22409.1401.5.0_neutral___8wekyb3d8bbwe.Msixbundle",
-    "Microsoft.DesktopAppInstaller_2023.808.2243.0_neutral___8wekyb3d8bbwe.Msixbundle",
-    "Microsoft.StorePurchaseApp_22408.1401.0.0_neutral___8wekyb3d8bbwe.AppxBundle",
-    "Microsoft.XboxIdentityProvider_12.115.1001.0_neutral___8wekyb3d8bbwe.AppxBundle",
-    "Microsoft.GamingServices_33.108.12001.0_neutral_~_8wekyb3d8bbwe.AppxBundle",
-    "Microsoft.Xbox.TCUI_1.24.10001.0_neutral_~_8wekyb3d8bbwe.AppxBundle"
+    "Microsoft.DesktopAppInstaller_2023.808.2243.0_neutral_8wekyb3d8bbwe.Msixbundle",
+    "Microsoft.GamingServices_33.108.12001.0_neutral_8wekyb3d8bbwe.AppxBundle",
+    "Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x64_8wekyb3d8bbwe.Appx",
+    "Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x86_8wekyb3d8bbwe.Appx",
+    "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64_8wekyb3d8bbwe.Appx",
+    "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86_8wekyb3d8bbwe.Appx",
+    "Microsoft.StorePurchaseApp_22408.1401.0.0_neutral_8wekyb3d8bbwe.AppxBundle",
+    "Microsoft.UI.Xaml.2.7_7.2409.9001.0_x64_8wekyb3d8bbwe.Appx",
+    "Microsoft.UI.Xaml.2.7_7.2409.9001.0_x86_8wekyb3d8bbwe.Appx",
+    "Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64_8wekyb3d8bbwe.Appx",
+    "Microsoft.UI.Xaml.2.8_8.2310.30001.0_x86_8wekyb3d8bbwe.Appx",
+    "Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_x64_8wekyb3d8bbwe.Appx",
+    "Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_x86_8wekyb3d8bbwe.Appx",
+    "Microsoft.VCLibs.140.00_14.0.33519.0_x64_8wekyb3d8bbwe.Appx",
+    "Microsoft.VCLibs.140.00_14.0.33519.0_x86_8wekyb3d8bbwe.Appx",
+    "Microsoft.WindowsStore_22409.1401.5.0_neutral_8wekyb3d8bbwe.Msixbundle",
+    "Microsoft.Xbox.TCUI_1.24.10001.0_neutral_8wekyb3d8bbwe.AppxBundle",
+    "Microsoft.XboxIdentityProvider_12.115.1001.0_neutral_8wekyb3d8bbwe.AppxBundle"
 )
 
 # Function to show progress bar
