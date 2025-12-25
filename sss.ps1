@@ -227,7 +227,7 @@ function Show-Progress {
     `$completed = [math]::Floor((`$percent / 100) * `$barLength)
     `$remaining = `$barLength - `$completed
     
-    `$bar = "[" + ("█" * `$completed) + ("░" * `$remaining) + "]"
+    `$bar = "[" + ("#" * `$completed) + ("-" * `$remaining) + "]"
     
     Write-Host "`r`$Activity `$bar `$percent%" -NoNewline -ForegroundColor Cyan
 }
@@ -285,7 +285,10 @@ Write-Host "All done!" -ForegroundColor Green
 Write-Host "============================================" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Press any key to exit..." -ForegroundColor Gray
-`$null = [Console]::ReadKey(`$true)
+while (-not `$Host.UI.RawUI.KeyAvailable) {
+    Start-Sleep -Milliseconds 100
+}
+`$null = `$Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 "@
     
     $updateScriptPath = Join-Path $env:TEMP "MicrosoftStore_Update.ps1"
